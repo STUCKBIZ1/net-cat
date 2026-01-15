@@ -9,21 +9,28 @@ import (
 	"strings"
 )
 
+
+var frr string
+
+
+
 var clients []Client
 
 func HandleConn(conn net.Conn, clientChannel chan Client, messageChannel chan Message) {
-	var form string
 	var clientName string
 	reader := bufio.NewReader(conn)
-	logo, _ := os.ReadFile("logolinux.txt")
-	if len(clients) > 1 {
+	logo, err := os.ReadFile("logolinux.txt")
+	if err != nil {
+
+	}
+	if len(clients) > 10 {
 		fmt.Fprint(conn, "room chat is full try later")
 		conn.Close()
 	}
 	for {
 		if clientName != "" {
-			form = formatMessage(clientName, "")
-			fmt.Fprint(conn, form)
+			frr = formatMessage(clientName, "")
+			fmt.Fprint(conn, frr)
 			message, err := reader.ReadString('\n')
 			if err != nil {
 				if err == io.EOF{
@@ -43,9 +50,9 @@ func HandleConn(conn net.Conn, clientChannel chan Client, messageChannel chan Me
 			messageChannel <- messageStruct
 
 		} else {
-			fmt.Fprint(conn, "Welcome to TCP-Chat!\n")
+			fmt.Fprint(conn, "welcom to tcp chat\n")
 			fmt.Fprint(conn, string(logo))
-			fmt.Fprint(conn, "[ENTER YOUR NAME]:")
+			fmt.Fprint(conn, "Enter your name : ")
 			message, err := reader.ReadString('\n')
 			if err != nil {
 				return
@@ -61,6 +68,7 @@ func HandleConn(conn net.Conn, clientChannel chan Client, messageChannel chan Me
 					clientChannel <- cl
 				} else {
 					fmt.Fprint(conn, "cannot use name longer then 25 caracter\n")
+					return
 				}
 			} else {
 				fmt.Fprint(conn, "cannot use an empty name\n")
@@ -68,3 +76,5 @@ func HandleConn(conn net.Conn, clientChannel chan Client, messageChannel chan Me
 		}
 	}
 }
+
+

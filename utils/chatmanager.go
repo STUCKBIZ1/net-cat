@@ -27,7 +27,7 @@ func ChatManager(clientChannel chan Client, messageChannel chan Message) {
 			}
 		case clientMessage := <-messageChannel:
 			broadCast(clientMessage, clients)
-			chatHistory += clientMessage.textMessage
+			chatHistory += clientMessage.textMessage 
 
 		}
 	}
