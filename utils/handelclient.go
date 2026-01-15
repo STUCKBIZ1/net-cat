@@ -9,14 +9,24 @@ import (
 	"strings"
 )
 
-
 var frr string
-
-
 
 var clients []Client
 
-func HandleConn(conn net.Conn, clientChannel chan Client, messageChannel chan Message) {
+func HandleConn(
+	conn net.Conn,
+	clientChannel chan Client,
+	messageChannel chan Message,
+	limit chan struct{},
+) {
+	select {
+	case limit <- struct{}{}:
+	default:
+		fmt.Fprint(conn, "room chat is full, try later\n")
+		conn.Close()
+		return
+	}
+
 	var clientName string
 	reader := bufio.NewReader(conn)
 	logo, err := os.ReadFile("logolinux.txt")
@@ -32,16 +42,16 @@ func HandleConn(conn net.Conn, clientChannel chan Client, messageChannel chan Me
 			frr = formatMessage(clientName, "")
 			fmt.Fprint(conn, frr)
 			message, err := reader.ReadString('\n')
-			if err != nil {
-				if err == io.EOF{
-					cl := Client{
-						name: clientName,
-						conn : nil,
-					}
-					clientChannel <- cl
-					return
+			if err == io.EOF {
+				cl := Client{
+					name: clientName,
+					conn: nil,
 				}
+				clientChannel <- cl
+				<-limit
+				return
 			}
+
 			message = formatMessage(clientName, message)
 			messageStruct := Message{
 				textMessage: message,
@@ -76,5 +86,3 @@ func HandleConn(conn net.Conn, clientChannel chan Client, messageChannel chan Me
 		}
 	}
 }
-
-

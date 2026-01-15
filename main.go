@@ -9,27 +9,33 @@ import (
 )
 
 func main() {
-	if len(os.Args) > 2 || len(os.Args) < 1{
+	if len(os.Args) > 2 || len(os.Args) < 1 {
 		fmt.Println("usage the programme name and port")
 		return
 	}
+
 	port := ""
-	if len(os.Args) == 1{
+	if len(os.Args) == 1 {
 		port = "8989"
-	}else{
+	} else {
 		port = os.Args[1]
 	}
+
 	clientChannel := make(chan utils.Client)
 	messageChannel := make(chan utils.Message)
+
+	limit := make(chan struct{}, 10)
+
 	ln, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		fmt.Println("ERROR", err)
 		return
 	}
+
 	go utils.ChatManager(clientChannel, messageChannel)
-	var conn net.Conn
+
 	for {
-		conn, _ = ln.Accept()
-		go utils.HandleConn(conn, clientChannel, messageChannel)
+		conn, _ := ln.Accept()
+		go utils.HandleConn(conn, clientChannel, messageChannel, limit)
 	}
 }
