@@ -17,10 +17,10 @@ func HandleConn(
 	conn net.Conn,
 	clientChannel chan Client,
 	messageChannel chan Message,
-	limit chan struct{},
+	limit chan int,
 ) {
 	select {
-	case limit <- struct{}{}:
+	case limit <- 1:
 	default:
 		fmt.Fprint(conn, "room chat is full, try later\n")
 		conn.Close()
@@ -31,11 +31,7 @@ func HandleConn(
 	reader := bufio.NewReader(conn)
 	logo, err := os.ReadFile("logolinux.txt")
 	if err != nil {
-
-	}
-	if len(clients) > 10 {
-		fmt.Fprint(conn, "room chat is full try later")
-		conn.Close()
+		logo = []byte("Welcome to TCP-Chat!\n")
 	}
 	for {
 		if clientName != "" {
@@ -52,12 +48,13 @@ func HandleConn(
 				return
 			}
 
-			message = formatMessage(clientName, message)
-			messageStruct := Message{
-				textMessage: message,
-				conn:        conn,
+			if strings.TrimSpace(message) != "" {
+				messageStruct := Message{
+					textMessage: formatMessage(clientName, message),
+					conn:        conn,
+				}
+				messageChannel <- messageStruct
 			}
-			messageChannel <- messageStruct
 
 		} else {
 			fmt.Fprint(conn, "welcom to tcp chat\n")

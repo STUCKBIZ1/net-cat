@@ -10,7 +10,7 @@ import (
 
 func main() {
 	if len(os.Args) > 2 || len(os.Args) < 1 {
-		fmt.Println("usage the programme name and port")
+		fmt.Println("[USAGE]: ./TCPChat $port")
 		return
 	}
 
@@ -24,8 +24,7 @@ func main() {
 	clientChannel := make(chan utils.Client)
 	messageChannel := make(chan utils.Message)
 
-	limit := make(chan struct{}, 10)
-
+	limit := make(chan int, 10)
 	ln, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		fmt.Println("ERROR", err)
@@ -35,7 +34,11 @@ func main() {
 	go utils.ChatManager(clientChannel, messageChannel)
 
 	for {
-		conn, _ := ln.Accept()
+		conn, err := ln.Accept()
+		if err != nil {
+			fmt.Println("Error accepting connection:", err)
+			continue
+		}
 		go utils.HandleConn(conn, clientChannel, messageChannel, limit)
 	}
 }

@@ -3,12 +3,9 @@ package utils
 import "fmt"
 
 func broadCast(clientMessage Message, clients []Client) {
-	var msg string
 	for _, client := range clients {
-		if client.conn != clientMessage.conn {
-			msg = formatMessage(client.name, "")
-			fmt.Fprint(client.conn, "\r\033[K"+clientMessage.textMessage)
-			fmt.Fprint(client.conn, msg)
+		if client.conn != nil && client.conn != clientMessage.conn {
+			fmt.Fprint(client.conn, clientMessage.textMessage)
 		}
 	}
 }
