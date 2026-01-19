@@ -2,43 +2,33 @@ package main
 
 import (
 	"fmt"
-	"net"
-	"os"
 
-	"netcat/utils"
+	"net-cat/domain"
+	"net-cat/server"
 )
 
 func main() {
-	if len(os.Args) > 2 || len(os.Args) < 1 {
-		fmt.Println("[USAGE]: ./TCPChat $port")
-		return
-	}
+	joinCh := make(chan domain.Client)
+	leaveCh := make(chan domain.Client)
+	messageCh := make(chan domain.Message)
+	UsernameCheckCh := make(chan domain.UsernameCheck)
+	limit := make(chan int, 10) // Limit to 10 concurrent connections
 
-	port := ""
-	if len(os.Args) == 1 {
-		port = "8989"
-	} else {
-		port = os.Args[1]
-	}
+	go server.ChatManager(joinCh, leaveCh, messageCh, UsernameCheckCh)
 
-	clientChannel := make(chan utils.Client)
-	messageChannel := make(chan utils.Message)
-
-	limit := make(chan int, 10)
-	ln, err := net.Listen("tcp", ":"+port)
+	listener, err := server.RunServer()
 	if err != nil {
-		fmt.Println("ERROR", err)
+		fmt.Println(err)
 		return
 	}
-
-	go utils.ChatManager(clientChannel, messageChannel)
 
 	for {
-		conn, err := ln.Accept()
+		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("Error accepting connection:", err)
-			continue
+			fmt.Println("Error accepting connections: ", err)
+			server.LogMessage("❌Error accepting connections: " + fmt.Sprint(err))
+			return
 		}
-		go utils.HandleConn(conn, clientChannel, messageChannel, limit)
+		go server.HandleClient(conn, joinCh, leaveCh, messageCh, UsernameCheckCh, limit)
 	}
 }
