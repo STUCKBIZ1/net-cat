@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+// CheckPort checks command-line arguments for a port number
+// If no port is provided, it defaults to ":8989"
+// It returns an error if the provided port is invalid
 func CheckPort() (port string, err error) {
 	switch len(os.Args) {
 	case 1:
@@ -23,6 +26,9 @@ func CheckPort() (port string, err error) {
 	}
 }
 
+
+// Atoi converts a string to an integer
+// It returns an error if the string is not a valid integer
 func Atoi(s string) (n int, err error) {
 	for _, v := range s {
 		if v < '0' || v > '9' {
@@ -33,10 +39,18 @@ func Atoi(s string) (n int, err error) {
 	return n, nil
 }
 
+// IsPrintable checks if a rune is a printable character
+// It returns true for printable characters and false otherwise
+// Printable characters are in the ranges 32-126 and 128-255 of the ASCII table
+// And the extended ASCII table
+// Non-printable characters include control characters and whitespaces other than space
 func IsPrintable(r rune) bool {
 	return (r >= 32 && r <= 126) || (r >= 128 && r <= 255)
 }
 
+
+// SanitizeInput removes non-printable characters from a string
+// It returns the sanitized string with leading and trailing spaces trimmed
 func SanitizeInput(input string) string {
 	sanitized := ""
 	for _, r := range input {

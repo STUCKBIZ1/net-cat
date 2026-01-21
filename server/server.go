@@ -7,7 +7,6 @@ import (
 	"net-cat/tools"
 )
 
-
 func RunServer() (net.Listener, error) {
 	// Server logic here
 	port, err := tools.CheckPort()
